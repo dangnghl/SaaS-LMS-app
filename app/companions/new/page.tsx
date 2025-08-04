@@ -1,9 +1,16 @@
+import CompanionForm from '@/components/CompanionForm'
 import React from 'react'
 
-const NewComponions = () => {
+const NewCompanion = () => {
   return (
-    <div>NewComponions</div>
+    <main className='min-lg:w-1/3 min-md:h-2/3 items-center justify-center'>
+      <article className='w-full gap-4 flex flex-col'>
+        <h1>Companion Builder</h1>
+        
+        <CompanionForm />
+      </article>
+    </main>
   )
 }
 
-export default NewComponions
+export default NewCompanion
