@@ -22,7 +22,7 @@ const SubjectFilter = () => {
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       let newUrl = '';
-      if(querySubject === 'all') {
+      if(querySubject === 'all'  || querySubject === '') {
         newUrl = removeKeysFromUrlQuery({
           params: searchParams.toString(),
           keysToRemove: ['subject']
