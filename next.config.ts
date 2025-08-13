@@ -7,7 +7,9 @@ const nextConfig: NextConfig = {
 module.exports = {
   // ...other config...
   images: {
-    domains: ['img.clerk.com'],
+    remotePatterns: [
+      new URL('https://img.clerk.com/**'),
+    ],
   },
 };
 

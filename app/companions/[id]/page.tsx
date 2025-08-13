@@ -16,6 +16,7 @@ const CompanionSession = async ({ params } : CompanionSessionPageProps) => {
 	const user = await currentUser();
 
 	const {name, subject, topic, duration} = companion;
+	
 	console.log("companion is", companion);
 	if (!user) redirect('/sign-in');
 	if (!name) redirect('/companions');
@@ -27,8 +28,8 @@ const CompanionSession = async ({ params } : CompanionSessionPageProps) => {
 
 					{/* Image */}
 					<div 
-						className="size-[72px] flex items-center justify-center rounded-lg max-md:hidden"
-						style={{ backgroundColor: getSubjectColor(subject) }}
+					className="size-[72px] flex items-center justify-center rounded-lg max-md:hidden"
+					style={{ backgroundColor: getSubjectColor(subject) }}
 					>
 						<Image 
 						src={`/icons/${subject}.svg`} 
@@ -53,14 +54,14 @@ const CompanionSession = async ({ params } : CompanionSessionPageProps) => {
 
 				</div>
 				<div className="items-start text-2xl max-md:hidden">
-					{duration} minutes
+{duration} minutes
 				</div>
 			</article>
 			<CompanionComponent 
-				{...companion}
-				companionId={user.id}
-				userImage={user.imageUrl!}
-				userName={user.fullName!}
+			{...companion}
+			companionId={id}
+			userName={user.fullName!}
+			userImage={user.imageUrl!}
 			/>
 		</main>
 	)

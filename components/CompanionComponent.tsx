@@ -1,6 +1,6 @@
 'use client'
 
-import { cn, getSubjectColor } from '@/lib/utils'
+import { cn, configureAssistant, getSubjectColor } from '@/lib/utils'
 import { vapi } from '@/lib/vapi.sdk'
 import Lottie, {  LottieRefCurrentProps } from 'lottie-react'
 import Image from 'next/image'
@@ -20,11 +20,11 @@ companionId, subject, topic, name,
 style, userImage, userName, voice } 
 : CompanionComponentProps) => {
 
-    const [callStatus, setCallStatus] = useState(CallStatus.CONNECTING);
+    const [callStatus, setCallStatus] = useState(CallStatus.INACTIVE);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
-
     const lottieRef = React.useRef<LottieRefCurrentProps>(null);
+
     console.log("username is", userName);
 
     useEffect(() => {
@@ -35,7 +35,7 @@ style, userImage, userName, voice }
                 lottieRef.current?.stop();
             }
         }
-    }, [callStatus]);
+    }, [isSpeaking,lottieRef]);
 
     useEffect(() => {
         const onCallStart = ()=> setCallStatus(CallStatus.ACTIVE);
@@ -75,8 +75,23 @@ style, userImage, userName, voice }
         setIsMuted(!isMuted);
     }
 
-    const handleCall = async () => {}
-    const handleDisconnect = async () => {}
+    const handleCall = async () => {
+        setCallStatus(CallStatus.CONNECTING);
+
+        const assistantOverrides = {
+            variableValues: { subject, topic, style },
+            clientMessages: ["transcript"],
+            serverMessages: [],
+        }
+
+        // @ts-expect-error
+        vapi.start(configureAssistant(voice, style), assistantOverrides)
+    }
+    const handleDisconnect = async () => {
+        setCallStatus(CallStatus.FINISHED);
+        vapi.stop();
+    }
+
 
     return (
         <section className="flex flex-col h-[70vh]">
@@ -111,10 +126,10 @@ style, userImage, userName, voice }
                 <div className="user-section">
                     <div className="user-avatar">
                         <Image
-                            src={userImage}
-                            alt={userName}
-                            width={150}
-                            height={150}
+                        src={userImage}
+                        alt={userName}
+                        width={150}
+                        height={150}
                         />
                         <p className="font-bold text-2xl">{userName}</p>
                     </div>
@@ -131,7 +146,7 @@ style, userImage, userName, voice }
                     className={cn('rounded-lg py-2 cursor-pointer transition-colors w-full text-white',
                         callStatus === CallStatus.ACTIVE && 'bg-red-500 hover:bg-red-600',
                         callStatus === CallStatus.CONNECTING && 'bg-yellow-500 hover:bg-yellow-600',
-                        callStatus === CallStatus.INACTIVE && 'bg-green-500 hover:bg-green-600 '
+                        (callStatus === CallStatus.INACTIVE || callStatus === CallStatus.FINISHED) && 'bg-green-500 hover:bg-green-600 '
                     )}>
                         {(() => {
                             switch (callStatus) {
@@ -142,6 +157,13 @@ style, userImage, userName, voice }
                         })()}
                     </button>
                 </div>
+            </section>
+
+            <section className="transcript">
+                <div className="transcript-message no-scrollbar">
+                    MESSAGE
+                </div>
+                <div className='transcript-fade'/>
             </section>
         </section>
     )
