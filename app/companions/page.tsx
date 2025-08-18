@@ -14,14 +14,14 @@ const ComponionsLibrary = async ({searchParams} : SearchParams) => {
   
   return (
     <main>
-      <section className="flex justify-center gap-4 max-sm:flex-col">
+      <section className="flex justify-around gap-4 max-sm:flex-col">
         <h1>Companion Library</h1>
-        <div className="flex gap-4">
+        <div className="flex gap-4 ">
           <SearchInput />
           <SubjectFilter />
         </div>
       </section>
-      <section className="companions-grid">
+      <section className="companions-grid ">
         {companions.map((companion) => (
           <CompanionCard 
             key={companion.id} {...companion}

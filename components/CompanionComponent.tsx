@@ -6,6 +6,8 @@ import Lottie, {  LottieRefCurrentProps } from 'lottie-react'
 import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
 import soundwaves from "@/constants/soundwaves.json";
+import { addToSessionHistory } from '@/lib/actions/companion.action'
+
 
 enum CallStatus {
     INACTIVE='INACTIVE',
@@ -23,9 +25,10 @@ style, userImage, userName, voice }
     const [callStatus, setCallStatus] = useState(CallStatus.INACTIVE);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    const [messages, setMessages] = useState<SavedMessage[]>([]);
+
     const lottieRef = React.useRef<LottieRefCurrentProps>(null);
 
-    console.log("username is", userName);
 
     useEffect(() => {
         if (lottieRef.current) {
@@ -38,19 +41,38 @@ style, userImage, userName, voice }
     }, [isSpeaking,lottieRef]);
 
     useEffect(() => {
-        const onCallStart = ()=> setCallStatus(CallStatus.ACTIVE);
+        const onCallStart = () => { 
+            setCallStatus(CallStatus.ACTIVE); 
+            if(isMuted !== vapi.isMuted()) {
+                vapi.setMuted(isMuted);
+            }
+        }
 
-        const onCallEnd = ()=> setCallStatus(CallStatus.FINISHED);
+        const onCallEnd = () => {
+            setCallStatus(CallStatus.FINISHED);
+            addToSessionHistory(companionId);
+        }
 
-        const onMessage = () => {}
+        const onMessage = (message: Message) => {
+            if (message.type === 'transcript' && message.transcriptType === 'final') {
+                const newMessage = { role: message.role, content: message.transcript };
+                setMessages((prev) => [newMessage, ...prev]);
+                console.log('New message:', newMessage);
+            }
+        };
 
-        const onSpeechStart = () => setIsSpeaking(true);
-
-        const onSpeechEnd = () => setIsSpeaking(false);
+        const onSpeechStart = () => {
+            setIsSpeaking(true);
+            console.log('Speech started');
+        }
+        
+        const onSpeechEnd = () => {
+            setIsSpeaking(false);
+            console.log('Speech ended');
+        }
 
         const onError = (error: Error) => console.log('Error', error);
 
-        
         vapi.on('call-start', onCallStart);
         vapi.on('call-end', onCallEnd);
         vapi.on('message', onMessage);
@@ -70,13 +92,16 @@ style, userImage, userName, voice }
     }, [])
 
     const toggleMicrophone = () => {
-        const isMuted = vapi.isMuted();
-        vapi.setMuted(!isMuted);
+        if(callStatus === CallStatus.ACTIVE) {
+            vapi.setMuted(!isMuted);
+        }
         setIsMuted(!isMuted);
+        
     }
 
     const handleCall = async () => {
         setCallStatus(CallStatus.CONNECTING);
+        
 
         const assistantOverrides = {
             variableValues: { subject, topic, style },
@@ -84,17 +109,17 @@ style, userImage, userName, voice }
             serverMessages: [],
         }
 
-        // @ts-expect-error
+        // @ts-expect-error : assistantOverrides got some weird shit going on
         vapi.start(configureAssistant(voice, style), assistantOverrides)
     }
-    const handleDisconnect = async () => {
+    const handleDisconnect = () => {
         setCallStatus(CallStatus.FINISHED);
         vapi.stop();
     }
 
 
     return (
-        <section className="flex flex-col h-[70vh]">
+        <section className="flex flex-col ">
             <section className="flex gap-8 max-sm:flex-col">
                 <div className="companion-section">
                     <div className="companion-avatar" 
@@ -134,13 +159,15 @@ style, userImage, userName, voice }
                         <p className="font-bold text-2xl">{userName}</p>
                     </div>
                     <button className='btn-mic' onClick={toggleMicrophone}>
-                        <Image
+                            <Image
                             src={isMuted ? '/icons/mic-off.svg' : '/icons/mic-on.svg'}
                             alt={isMuted ? 'Unmute' : 'Mute'}
                             width={36}
                             height={36}
                         />
-                        <p className="max-sm:hidden">{isMuted ? 'Turn on microphone' : 'Turn off microphone'}</p>
+                        <p className="max-sm:hidden">
+                            {isMuted ? 'Turn on microphone' : 'Turn off microphone'}
+                        </p>
                     </button>
                     <button onClick={callStatus === CallStatus.ACTIVE ? handleDisconnect : handleCall}
                     className={cn('rounded-lg py-2 cursor-pointer transition-colors w-full text-white',
@@ -159,10 +186,25 @@ style, userImage, userName, voice }
                 </div>
             </section>
 
-            <section className="transcript">
+            <section className="transcript overflow-scroll">
                 <div className="transcript-message no-scrollbar">
-                    MESSAGE
+                    {messages.map((message, index) => {
+                            if (message.role === 'assistant') {
+                                return (
+                                    <p key={index} className='max-md:text-sm'>
+                                        {name.split(' ')[0].replace(/[.,]/g, '')}: {message.content}
+                                    </p>
+                                )
+                            } else {
+                                return (
+                                    <p key={index} className='text-primary max-md:text-sm'>
+                                        {userName}: {message.content}
+                                    </p>
+                                ) 
+                            }
+                    })}
                 </div>
+                
                 <div className='transcript-fade'/>
             </section>
         </section>

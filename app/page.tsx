@@ -1,15 +1,35 @@
-import React from 'react'
+'use client'
+
+import React, { useEffect, useState } from 'react'
 import CompanionCard from '@/components/CompanionCard'
 import CompanionsList from '@/components/CompanionsList'
 import CTA from '@/components/CTA'
 import { recentSessions } from '@/constants'
+import { getRecentSessions } from '@/lib/actions/companion.action'
 
 const Page = () => {
+
+  const [recentSessions, setRecentSessions] = useState<string[][]>([]);
+
+  useEffect(() => {
+    const fetchRecentSessions = async () => {
+      const sessions = await getRecentSessions();
+      console.log(sessions);
+
+      setRecentSessions(sessions);
+    };
+
+    fetchRecentSessions();
+  }, []);
+
   return (
       <main>
         <h1 className="text-2xl underline">Popular Companions</h1>
 
         <section className='home-section'>
+          {
+
+          }
           <CompanionCard 
             id="123"
             name="World of Calculus"

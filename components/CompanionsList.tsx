@@ -20,9 +20,10 @@ interface CompanionsListProps {
 const CompanionsList = ({title,companions, classNames}: CompanionsListProps) => {
 	return (
 		<article className={cn("companion-list", classNames)}>
-			<h2 className="font-bold text-3xl ">Recent Session</h2>
+			<h2 className="font-bold text-3xl ">{title}</h2>
 			
 			<Table>
+				
 				<TableCaption>A list of your recent invoices.</TableCaption>
 				<TableHeader>
 					<TableRow>
@@ -38,10 +39,10 @@ const CompanionsList = ({title,companions, classNames}: CompanionsListProps) => 
 							{/* Lesson */}
 							<TableCell>
 								<Link href={`/companions/${id}`}>
-									<div className="flex items-center gap-2">
+									<div className="flex items-start gap-2">
 
 										{/* SubjectIcon Image*/}
-										<div className="size-[72px] flex items-center justify-center rounded-lg max-md:hidden"
+										<div className=" size-[72px] flex items-center justify-center rounded-lg max-md:hidden"
 										style={{backgroundColor: getSubjectColor(subject)}}
 										>
 											<Image 
@@ -53,9 +54,9 @@ const CompanionsList = ({title,companions, classNames}: CompanionsListProps) => 
 										</div>
 										
 										{/* Lesson Details */}
-										<div className="flex flex-col gap-2 ">
+										<div className="w-[80%] flex flex-col gap-2 ">
 											<p className="font-bold text-2xl">{name}</p>
-											<p className="text-lg text-muted-foreground">{topic}</p>
+											<p className="text-lg text-muted-foreground text-wrap line-clamp-4">{topic}</p>
 										</div>
 									</div>
 								</Link>
