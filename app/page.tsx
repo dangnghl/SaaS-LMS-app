@@ -5,55 +5,52 @@ import CompanionCard from '@/components/CompanionCard'
 import CompanionsList from '@/components/CompanionsList'
 import CTA from '@/components/CTA'
 import { recentSessions } from '@/constants'
-import { getRecentSessions } from '@/lib/actions/companion.action'
+import { getAllCompanions, getRecentSessions } from '@/lib/actions/companion.action'
+import { getSubjectColor } from '@/lib/utils';
+
+
 
 const Page = () => {
-
+  
+  
   const [recentSessions, setRecentSessions] = useState<string[][]>([]);
+  const [popularCompanions, setpopularCompanions] = useState<Companion[]>([]);
+  
+
 
   useEffect(() => {
-    const fetchRecentSessions = async () => {
+    const initial = async ()=>{
       const sessions = await getRecentSessions();
-      console.log(sessions);
-
       setRecentSessions(sessions);
-    };
+      console.log("session:" , sessions);
 
-    fetchRecentSessions();
+      const companions = await getAllCompanions({limit:3});
+      setpopularCompanions(companions)
+      console.log("fdsfdsafdsafd",companions)
+    } 
+    initial();
+
   }, []);
+
+
 
   return (
       <main>
         <h1 className="text-2xl underline">Popular Companions</h1>
-
         <section className='home-section'>
-          {
-
-          }
+          {popularCompanions.map((companion) => (
           <CompanionCard 
-            id="123"
-            name="World of Calculus"
-            topic ="Calculus"
-            subject="Mathematics"
-            duration={45}
-            color="#e5d0ff"
-          />
-          <CompanionCard 
-            id="234"
-            name="Introduction to Psychology"
-            topic="Psychology"
-            subject="Social Sciences"
-            duration={30}
-            color="#f0abfc"
-          />
-          <CompanionCard 
-            id="345"
-            name="Basic Physics"
-            topic="Physics"
-            subject="Science"
-            duration={60}
-            color="#c4f1f9"
-          />
+            {... companion}
+            key={companion.id} 
+            name={companion.name} 
+            color={getSubjectColor(companion.subject)}
+            duration={companion.duration}
+            subject={companion.subject}
+            topic={companion.topic}
+            id={companion.id}
+            bookmarked={companion.bookmarked}
+            />
+        ))}
         </section>
 
         <section className="home-section">

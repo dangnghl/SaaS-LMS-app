@@ -3,6 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { createSupabaseClient } from "@/lib/supabase";
 import { use } from "react";
+import { dataloaderIntegration } from "@sentry/nextjs";
 
 export const createCompanion = async (formData: CreateCompanion) =>{
     const {userId: author} = await auth();
@@ -18,6 +19,9 @@ export const createCompanion = async (formData: CreateCompanion) =>{
     }
 
     return data[0];
+}
+
+export const updateCompanion = async (id: string, formData: UpdateCompanion) => {
 }
 
 export const getAllCompanions = async ({ limit = 10, page = 1, subject, topic} : GetAllCompanions) => {
@@ -150,4 +154,74 @@ export const newCompanionPermissions = async () => {
 
     return companionCount < limit;
 
+}
+
+export const getPopularCompanions = async (limit = 10) => {
+    const supabase = createSupabaseClient();
+
+    const { data, error } = await supabase
+        .from('companions')
+        .select()
+        .order('popularity', { ascending: false })
+        .limit(limit);
+
+    if (error) {
+        throw new Error(error.message);
+    }
+
+    return data;
+}
+
+
+export const insertBookmark = async (companionid: string) => {
+    const { userId } = await auth(); // get current user
+    if (!userId) return;
+
+    const supabase = createSupabaseClient();
+
+    const { data, error } = await supabase
+        .from('bookmarks')
+        .insert({
+            companion_id: companionid,
+            user_id: userId
+        });
+
+    if (error) {
+        throw new Error(error.message);
+    }
+
+    return data;
+}
+
+export const removeBookmark = async (companionid: string) => {
+    const { userId } = await auth(); // get current user
+    if (!userId) return;
+    const supabase = createSupabaseClient();
+
+    const { data,error } = await supabase
+        .from('bookmarks')
+        .delete()
+        .eq('companion_id', companionid)
+        .eq('user_id', userId);
+
+    if (error) {
+        throw new Error(error.message);
+    }
+
+    return data;
+}
+
+export const getBookmarks = async (userId: string) => {
+    const supabase = createSupabaseClient();
+
+    const { data, error } = await supabase
+        .from('bookmarks')
+        .select('companions:companion_id (*)')
+        .eq('user_id', userId);
+
+    if (error) {
+        throw new Error(error.message);
+    }
+
+    return data.map(({ companions }) => companions);
 }
